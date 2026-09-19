@@ -354,7 +354,7 @@ public final class CsvParser extends ComputeIter<CsvRow> implements Closeable, S
 	 * @since 5.7.4
 	 */
 	private boolean isLineEnd(final int c, final int preChar) {
-		return (c == CharUtil.CR || c == CharUtil.LF) && preChar != CharUtil.CR;
+		return c == CharUtil.CR || (c == CharUtil.LF && preChar != CharUtil.CR);
 	}
 
 	/**
