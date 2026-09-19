@@ -16,13 +16,13 @@ public class RandomUtilTest {
 	@Test
 	public void randomEleSetTest(){
 		Set<Integer> set = RandomUtil.randomEleSet(CollUtil.newArrayList(1, 2, 3, 4, 5, 6), 2);
-		assertEquals(set.size(), 2);
+		assertEquals(2, set.size());
 	}
 
 	@Test
 	public void randomElesTest(){
 		List<Integer> result = RandomUtil.randomEles(CollUtil.newArrayList(1, 2, 3, 4, 5, 6), 2);
-		assertEquals(result.size(), 2);
+		assertEquals(2, result.size());
 	}
 
 	@Test
