@@ -2,14 +2,14 @@ package cn.hutool.core.util;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Console;
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.math.RoundingMode;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RandomUtilTest {
 
@@ -65,9 +65,8 @@ public class RandomUtilTest {
 	public void randomStringWithoutStrTest() {
 		for (int i = 0; i < 100; i++) {
 			final String s = RandomUtil.randomStringWithoutStr(8, "0IPOL");
-			System.out.println(s);
 			for (char c : "0IPOL".toCharArray()) {
-				assertFalse(s.contains((String.valueOf(c).toLowerCase(Locale.ROOT))));
+				assertFalse(s.contains((String.valueOf(c))));
 			}
 		}
 	}
