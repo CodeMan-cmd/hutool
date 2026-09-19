@@ -225,9 +225,9 @@ public final class CsvParser extends ComputeIter<CsvRow> implements Closeable, S
 		int c;
 		while (true) {
 			c = tokener.next();
-			if(c < 0){
+			if (c < 0) {
 				if (!currentField.isEmpty() || preChar == config.fieldSeparator) {
-					if(this.inQuotes){
+					if (this.inQuotes) {
 						// 未闭合的文本包装，在末尾补充包装符
 						currentField.append(config.textDelimiter);
 					}
@@ -270,7 +270,7 @@ public final class CsvParser extends ComputeIter<CsvRow> implements Closeable, S
 				if (c == config.textDelimiter) {
 					// issue#IB5UQ8 文本包装符转义
 					final int next = tokener.next();
-					if(next != config.textDelimiter){
+					if (next != config.textDelimiter) {
 						// 包装结束
 						inQuotes = false;
 						tokener.back();
@@ -283,7 +283,7 @@ public final class CsvParser extends ComputeIter<CsvRow> implements Closeable, S
 					}
 				}
 				// 普通字段字符
-				currentField.append((char)c);
+				currentField.append((char) c);
 			} else {
 				// 非引号内
 				if (c == config.fieldSeparator) {
@@ -293,7 +293,7 @@ public final class CsvParser extends ComputeIter<CsvRow> implements Closeable, S
 				} else if (c == config.textDelimiter && isFieldBegin(preChar)) {
 					// 引号开始且出现在字段开头
 					inQuotes = true;
-					currentField.append((char)c);
+					currentField.append((char) c);
 				} else if (c == CharUtil.CR) {
 					// \r
 					addField(currentFields, currentField.toString());
@@ -310,7 +310,7 @@ public final class CsvParser extends ComputeIter<CsvRow> implements Closeable, S
 					}
 					// 前一个字符是\r，已经处理过这个字段了，此处直接跳过
 				} else {
-					currentField.append((char)c);
+					currentField.append((char) c);
 				}
 			}
 
@@ -341,7 +341,7 @@ public final class CsvParser extends ComputeIter<CsvRow> implements Closeable, S
 		// 忽略多余引号后的换行符
 		field = StrUtil.trim(field, StrTrimer.TrimMode.SUFFIX, (c -> c == CharUtil.LF || c == CharUtil.CR));
 
-		if(StrUtil.isWrap(field, textDelimiter)){
+		if (StrUtil.isWrap(field, textDelimiter)) {
 			field = StrUtil.sub(field, 1, field.length() - 1);
 		}
 		if (this.config.trimField) {
@@ -360,7 +360,9 @@ public final class CsvParser extends ComputeIter<CsvRow> implements Closeable, S
 	 * @since 5.7.4
 	 */
 	private boolean isLineEnd(final int c, final int preChar) {
-		return (c == CharUtil.CR || c == CharUtil.LF) && preChar != CharUtil.CR;
+		//return (c == CharUtil.CR || c == CharUtil.LF) && preChar != CharUtil.CR;
+		// pr#4324@Github 修复换行符处理问题
+		return c == CharUtil.CR || (c == CharUtil.LF && preChar != CharUtil.CR);
 	}
 
 	/**

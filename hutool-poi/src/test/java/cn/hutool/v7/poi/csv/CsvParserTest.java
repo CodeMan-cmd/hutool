@@ -18,10 +18,12 @@ package cn.hutool.v7.poi.csv;
 
 import cn.hutool.v7.core.io.IoUtil;
 import cn.hutool.v7.core.text.StrUtil;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class CsvParserTest {
 
@@ -31,7 +33,7 @@ public class CsvParserTest {
 		final CsvParser parser = new CsvParser(reader, null);
 		final CsvRow row = parser.nextRow();
 		//noinspection ConstantConditions
-		Assertions.assertEquals("b\"bba\"", row.getRaw().get(1));
+		assertEquals("b\"bba\"", row.getRaw().get(1));
 		IoUtil.closeQuietly(parser);
 	}
 
@@ -41,7 +43,7 @@ public class CsvParserTest {
 		final CsvParser parser = new CsvParser(reader, null);
 		final CsvRow row = parser.nextRow();
 		//noinspection ConstantConditions
-		Assertions.assertEquals("\"bba\"bbb", row.getRaw().get(1));
+		assertEquals("\"bba\"bbb", row.getRaw().get(1));
 		IoUtil.closeQuietly(parser);
 	}
 
@@ -51,7 +53,7 @@ public class CsvParserTest {
 		final CsvParser parser = new CsvParser(reader, null);
 		final CsvRow row = parser.nextRow();
 		//noinspection ConstantConditions
-		Assertions.assertEquals("bba", row.getRaw().get(1));
+		assertEquals("bba", row.getRaw().get(1));
 		IoUtil.closeQuietly(parser);
 	}
 
@@ -61,7 +63,7 @@ public class CsvParserTest {
 		final CsvParser parser = new CsvParser(reader, null);
 		final CsvRow row = parser.nextRow();
 		//noinspection ConstantConditions
-		Assertions.assertEquals("", row.getRaw().get(1));
+		assertEquals("", row.getRaw().get(1));
 		IoUtil.closeQuietly(parser);
 	}
 
@@ -72,9 +74,9 @@ public class CsvParserTest {
 		final StringReader reader = StrUtil.getReader("\"b\"\"bb\"");
 		final CsvParser parser = new CsvParser(reader, null);
 		final CsvRow row = parser.nextRow();
-		Assertions.assertNotNull(row);
-		Assertions.assertEquals(1, row.size());
-		Assertions.assertEquals("b\"bb", row.get(0));
+		assertNotNull(row);
+		assertEquals(1, row.size());
+		assertEquals("b\"bb", row.get(0));
 	}
 
 	@Test
@@ -82,7 +84,7 @@ public class CsvParserTest {
 		final String csv = "\"Consultancy, 10\"\",, food\"";
 		final CsvReader reader = CsvUtil.getReader(new StringReader(csv));
 		final String s = reader.read().getRow(0).get(0);
-		Assertions.assertEquals("Consultancy, 10\",, food", s);
+		assertEquals("Consultancy, 10\",, food", s);
 	}
 
 	@Test
@@ -90,7 +92,7 @@ public class CsvParserTest {
 		final String csv = "\"Consultancy, 10\"";
 		final CsvReader reader = CsvUtil.getReader(new StringReader(csv));
 		final String s = reader.read().getRow(0).get(0);
-		Assertions.assertEquals("Consultancy, 10", s);
+		assertEquals("Consultancy, 10", s);
 	}
 
 	@Test
@@ -99,7 +101,7 @@ public class CsvParserTest {
 		final String csv = "\"Consultancy,";
 		final CsvReader reader = CsvUtil.getReader(new StringReader(csv));
 		final String s = reader.read().getRow(0).get(0);
-		Assertions.assertEquals("Consultancy,", s);
+		assertEquals("Consultancy,", s);
 	}
 
 	@Test
@@ -108,7 +110,7 @@ public class CsvParserTest {
 		final String csv = "\"\"\"";
 		final CsvParser csvParser = new CsvParser(new StringReader(csv), CsvReadConfig.of().setSkipEmptyRows(false));
 		final CsvRow row = csvParser.nextRow();
-		Assertions.assertNotNull(row);
-		Assertions.assertEquals("\"", row.get(0));
+		assertNotNull(row);
+		assertEquals("\"", row.get(0));
 	}
 }

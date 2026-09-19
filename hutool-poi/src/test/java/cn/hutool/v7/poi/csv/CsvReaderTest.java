@@ -25,6 +25,8 @@ import cn.hutool.v7.core.util.CharsetUtil;
 import lombok.Data;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 import java.util.Map;
@@ -248,5 +250,27 @@ public class CsvReaderTest {
 		assertNull(row.get(-100));
 		// Positive out-of-bounds already works
 		assertNull(row.get(10));
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"\r", "\n", "\r\n"})
+	public void consecutiveLineBreaksInQuotedField(final String lineEnd) {
+		final String field = "first" + lineEnd + lineEnd + "last";
+		final CsvData data = new CsvReader().readFromStr("\"" + field + "\",value" + lineEnd + "next,row");
+		assertEquals(2, data.getRowCount());
+		assertEquals(field, data.getRow(0).get(0));
+		assertEquals(0, data.getRow(0).getOriginalLineNumber());
+		assertEquals(3, data.getRow(1).getOriginalLineNumber());
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"\r", "\n", "\r\n"})
+	public void headerAfterConsecutiveQuotedLineBreaks(final String lineEnd) {
+		final CsvReadConfig config = CsvReadConfig.of().setBeginLineNo(3).setHeaderLineNo(3);
+		final String csv = "\"first" + lineEnd + lineEnd + "last\",value" + lineEnd + "name,value" + lineEnd + "next,row";
+		final CsvData data = new CsvReader(config).readFromStr(csv);
+		assertEquals(1, data.getRowCount());
+		assertEquals("next", data.getRow(0).getByName("name"));
+		assertEquals(4, data.getRow(0).getOriginalLineNumber());
 	}
 }
