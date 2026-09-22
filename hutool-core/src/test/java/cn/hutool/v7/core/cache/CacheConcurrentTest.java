@@ -23,13 +23,15 @@ import cn.hutool.v7.core.exception.HutoolException;
 import cn.hutool.v7.core.lang.Console;
 import cn.hutool.v7.core.thread.ConcurrencyTester;
 import cn.hutool.v7.core.thread.ThreadUtil;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * 缓存单元测试
@@ -122,7 +124,7 @@ public class CacheConcurrentTest {
 		});
 		final long interval = concurrencyTester.getInterval();
 		// 总耗时应与单次操作耗时在同一个数量级
-		Assertions.assertTrue(interval < delay * 2);
+		assertTrue(interval < delay * 2);
 	}
 
 	@Test
@@ -162,5 +164,55 @@ public class CacheConcurrentTest {
 		if (!latch.await(5, TimeUnit.SECONDS)) {
 			throw new HutoolException("检测到可能的死锁!");
 		}
+	}
+
+	/**
+	 * <a href="https://github.com/chinabugotech/hutool/pull/4325">...</a>
+	 * @throws InterruptedException 中断异常
+	 */
+	@Test
+	public void lockedCacheShouldReturnValueAfterDoubleCheck() throws InterruptedException {
+		final String key = "key";
+		final CountDownLatch initialMiss = new CountDownLatch(1);
+		final CountDownLatch continueDoubleCheck = new CountDownLatch(1);
+		final AtomicInteger factoryCount = new AtomicInteger();
+		final AtomicReference<Thread> delayedThread = new AtomicReference<>();
+		final AtomicReference<String> delayedValue = new AtomicReference<>();
+		final LRUCache<String, String> cache = new LRUCache<>(2) {
+			@SuppressWarnings("ResultOfMethodCallIgnored")
+			@Override
+			public String get(final String key, final boolean isUpdateLastAccess) {
+				final String value = super.get(key, isUpdateLastAccess);
+				if (Thread.currentThread() == delayedThread.get() && null == value) {
+					initialMiss.countDown();
+					try {
+						continueDoubleCheck.await(5, TimeUnit.SECONDS);
+					} catch (final InterruptedException e) {
+						Thread.currentThread().interrupt();
+						throw new AssertionError(e);
+					}
+				}
+				return value;
+			}
+		};
+		final Thread delayed = new Thread(() -> delayedValue.set(cache.get(key, false, () -> "delayed")));
+		delayedThread.set(delayed);
+		delayed.start();
+
+		assertTrue(initialMiss.await(5, TimeUnit.SECONDS));
+
+		final Thread winner = new Thread(() -> cache.get(key, false, () -> {
+			factoryCount.incrementAndGet();
+			return "winner";
+		}));
+		winner.start();
+		winner.join(5000);
+		assertFalse(winner.isAlive());
+
+		continueDoubleCheck.countDown();
+		delayed.join(5000);
+		assertFalse(delayed.isAlive());
+		assertEquals("winner", delayedValue.get());
+		assertEquals(1, factoryCount.get());
 	}
 }
