@@ -57,11 +57,13 @@ public abstract class ReentrantCache<K, V> extends AbstractCache<K, V> {
 			lock.lock();
 			try {
 				// 双重检查锁，防止在竞争锁的过程中已经有其它线程写入
-				v = get(key, isUpdateLastAccess);
-				if (null == v) {
+				final CacheObj<K, V> co = getWithoutLock(key);
+				if (null == co) {
 					// supplier的创建是一个耗时过程，此处创建与全局锁无关，而与key锁相关，这样就保证每个key只创建一个value，且互斥
 					v = valueFactory.callWithRuntimeException();
 					putWithoutLock(key, v, timeout);
+				} else {
+					v = co.get(isUpdateLastAccess);
 				}
 			} finally {
 				lock.unlock();
